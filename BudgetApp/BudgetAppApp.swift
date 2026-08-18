@@ -6,12 +6,23 @@
 //
 
 import SwiftUI
+import Supabase
 
 @main
 struct BudgetAppApp: App {
+
+    @State private var store: ExpenseTrackerStore
+
+    init() {
+        _store = State(initialValue: ExpenseTrackerStore(supabaseClient: .development))
+    }
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            NavigationStack {
+                BudgetListScreen()
+            }
+            .environment(store)
         }
     }
 }

@@ -6,6 +6,15 @@
 	objectVersion = 110;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		685D74BA3032B8540058E353 /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = 685D74B93032B8540058E353 /* Auth */; };
+		685D74BC3032B8540058E353 /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = 685D74BB3032B8540058E353 /* Functions */; };
+		685D74BE3032B8540058E353 /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = 685D74BD3032B8540058E353 /* PostgREST */; };
+		685D74C03032B8540058E353 /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = 685D74BF3032B8540058E353 /* Realtime */; };
+		685D74C23032B8540058E353 /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = 685D74C13032B8540058E353 /* Storage */; };
+		685D74C43032B8540058E353 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 685D74C33032B8540058E353 /* Supabase */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		685D74AA3032B7960058E353 /* BudgetApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BudgetApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -22,6 +31,12 @@
 		685D74A73032B7960058E353 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				685D74BE3032B8540058E353 /* PostgREST in Frameworks */,
+				685D74BC3032B8540058E353 /* Functions in Frameworks */,
+				685D74C43032B8540058E353 /* Supabase in Frameworks */,
+				685D74BA3032B8540058E353 /* Auth in Frameworks */,
+				685D74C23032B8540058E353 /* Storage in Frameworks */,
+				685D74C03032B8540058E353 /* Realtime in Frameworks */,
 			);
 		};
 /* End PBXFrameworksBuildPhase section */
@@ -31,6 +46,7 @@
 			isa = PBXGroup;
 			children = (
 				685D74AC3032B7960058E353 /* BudgetApp */,
+				685D74C53032B8AD0058E353 /* Frameworks */,
 				685D74AB3032B7960058E353 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +57,13 @@
 				685D74AA3032B7960058E353 /* BudgetApp.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		685D74C53032B8AD0058E353 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -60,6 +83,14 @@
 				685D74AC3032B7960058E353 /* BudgetApp */,
 			);
 			name = BudgetApp;
+			packageProductDependencies = (
+				685D74B93032B8540058E353 /* Auth */,
+				685D74BB3032B8540058E353 /* Functions */,
+				685D74BD3032B8540058E353 /* PostgREST */,
+				685D74BF3032B8540058E353 /* Realtime */,
+				685D74C13032B8540058E353 /* Storage */,
+				685D74C33032B8540058E353 /* Supabase */,
+			);
 			productName = BudgetApp;
 			productReference = 685D74AA3032B7960058E353 /* BudgetApp.app */;
 			productType = "com.apple.product-type.application";
@@ -88,6 +119,9 @@
 			);
 			mainGroup = 685D74A13032B7960058E353;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				685D74B83032B8540058E353 /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 685D74AB3032B7960058E353 /* Products */;
 			projectDirPath = "";
@@ -251,6 +285,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -283,6 +318,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -320,6 +356,50 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		685D74B83032B8540058E353 /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		685D74B93032B8540058E353 /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 685D74B83032B8540058E353 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		685D74BB3032B8540058E353 /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 685D74B83032B8540058E353 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		685D74BD3032B8540058E353 /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 685D74B83032B8540058E353 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		685D74BF3032B8540058E353 /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 685D74B83032B8540058E353 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+		685D74C13032B8540058E353 /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 685D74B83032B8540058E353 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+		685D74C33032B8540058E353 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 685D74B83032B8540058E353 /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 685D74A23032B7960058E353 /* Project object */;
 	validationLevel = 1;

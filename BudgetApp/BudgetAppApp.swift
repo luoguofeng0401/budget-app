@@ -13,6 +13,7 @@ struct BudgetAppApp: App {
     
     @State private var router = Router()
     let authClient: AuthClient = .development
+    let storageClient: SupabaseStorageClient = .development
     @State private var signInStatus: SignInStatus = .idle
     
     private enum SignInStatus {
@@ -71,6 +72,7 @@ struct BudgetAppApp: App {
             }
             .environment(ExpenseTrackerStore(supabaseClient: .development))
             .environment(\.authClient, .development)
+            .environment(\.storageClient, storageClient)
             .environment(router)
             .task {
                 await listenAuthEvents()

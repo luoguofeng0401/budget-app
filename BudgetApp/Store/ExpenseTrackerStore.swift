@@ -15,7 +15,7 @@ class ExpenseTrackerStore {
     private(set) var budgets: [Budget] = []
     private(set) var expenses: [Expense] = []
     
-    var supabaseClient:SupabaseClient
+    var supabaseClient: SupabaseClient
     
     init(supabaseClient: SupabaseClient) {
         self.supabaseClient = supabaseClient

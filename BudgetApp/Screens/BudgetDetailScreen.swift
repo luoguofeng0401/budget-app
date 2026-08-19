@@ -23,7 +23,7 @@ struct BudgetDetailScreen: View {
               let id = budget.id
         else { return }
         
-        let updatedValue = Budget(name: name, limit: limit)
+        let updatedValue = Budget(name: name, limit: limit, userID: UUID())
         
         do {
             try await store.updateBudget(id: id, updatedValues: updatedValue)
@@ -70,6 +70,6 @@ struct BudgetDetailScreen: View {
 
 #Preview {
     NavigationStack {
-        BudgetDetailScreen(budget: Budget(name: "Leo", limit: 500))
+        BudgetDetailScreen(budget: Budget(name: "Leo", limit: 500, userID: UUID()))
     }.environment(\.supabaseClient, .development)
 }

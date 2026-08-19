@@ -1,4 +1,4 @@
- //
+//
 //  ContentView.swift
 //  BudgetApp
 //
@@ -9,14 +9,15 @@ import SwiftUI
 import Supabase
 
 struct BudgetListScreen: View {
-     
+    
     @State private var isPresented: Bool = false
+    @State private var isSettingsPresented: Bool = false
     
     @Environment(ExpenseTrackerStore.self) private var store
     
-     
     
-//
+    
+    //
     var body: some View {
         List {
             ForEach(store.budgets) { budget in
@@ -25,7 +26,7 @@ struct BudgetListScreen: View {
                     BudgetDetailScreen(budget: budget)
                 } label: {
                     BudgetCellView(budget: budget)
-                } 
+                }
             }
             .onDelete(perform: { IndexSet in
                 guard let index = IndexSet.last else { return }
@@ -38,23 +39,35 @@ struct BudgetListScreen: View {
                     }
                     
                 }
-            } )
-        }.task {
+            })
+        }
+        .navigationBarBackButtonHidden()
+        .task {
             do{
                 try  await store.lodBudgets()
             } catch {
                 print(error)
             }
         }
-        
         .navigationTitle("Budgets")
         .toolbar (content: {
+            ToolbarItem(placement: .topBarLeading) {
+                Button(action: {
+                    isSettingsPresented = true
+                }, label: {
+                    Image(systemName: "gear")
+                })
+            }
+            
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Add New") {
                     isPresented = true
                 }
             }
-        } )
+        })
+        .sheet(isPresented: $isSettingsPresented, content: {
+            SettingsScreen()
+        })
         .sheet(isPresented: $isPresented, content: {
             NavigationStack {
                 AddBedgetScreen()

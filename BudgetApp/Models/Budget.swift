@@ -8,14 +8,16 @@
 import Foundation
 
 struct Budget: Codable, Identifiable {
-    let id: Int?
-    let name: String
-    let limit: Double
+    var id: Int?
+    var name: String
+    var limit: Double
+    var userID: UUID
     var expenses: [Expense]?
-
-    init(id: Int? = nil, name: String, limit: Double) {
-        self.id = id
-        self.name = name
-        self.limit = limit 
+    
+    private enum CodingKeys: String, CodingKey {
+        case id = "id"
+        case name = "name"
+        case limit = "limit"
+        case userID = "user_id"
     }
 }

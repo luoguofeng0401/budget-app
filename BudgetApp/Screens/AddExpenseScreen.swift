@@ -56,7 +56,7 @@ struct AddExpenseScreen: View {
 
 #Preview {
     NavigationStack{
-        AddExpenseScreen(budget: Budget(id: 9, name: "Hiiiii", limit: 350))
+        AddExpenseScreen(budget: Budget(id: 9, name: "Hiiiii", limit: 350, userID: UUID()))
             .environment(ExpenseTrackerStore(supabaseClient: .development )) 
     }
 }

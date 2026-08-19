@@ -15,11 +15,16 @@ struct AddBedgetScreen: View {
     
     @Environment(ExpenseTrackerStore.self) private var store
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.authClient) private var authClient
      
     
     private func saveBudget() async {
+        
+        guard let currentUser = authClient.currentUser else {
+            return
+        }
         guard let limit = limit else { return }
-        let budget = Budget(name: name, limit: limit)
+        let budget = Budget(name: name, limit: limit, userID: currentUser.id)
         
         do {
             try await store.addBudget(budget)
@@ -33,7 +38,7 @@ struct AddBedgetScreen: View {
     var body: some View {
         Form {
             TextField("Enter name", text: $name)
-            TextField("Enter lit", value: $limit, format: .number)
+            TextField("Enter limit", value: $limit, format: .number)
         }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {

@@ -18,23 +18,11 @@ struct ChatMessageView: View {
     let direction: ChatMessageDirection
     let color: Color
     
-    private func username8y(email: String) -> String {
-        
-        let components = email.split(separator: "@")
-        
-        guard let username = components.first else {
-            return ""
-        }
-        
-        return String(username)
-        
-    }
-    
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 5){
                 
-                Text(username8y(email: chatMessage.email))
+                Text(chatMessage.email.username)
                     .opacity(0.8)
                     .font(.caption)
                     .foregroundColor(.white)

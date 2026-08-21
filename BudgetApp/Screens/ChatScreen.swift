@@ -8,12 +8,29 @@
 import SwiftUI
 import Supabase
 
-
+struct UserStatus: Identifiable, Codable {
+    
+    let id: UUID
+    let userId: UUID
+    let username: String
+    var online: Bool
+    
+    init(id: UUID = UUID(), userId: UUID, username: String, online: Bool) {
+        self.id = id
+        self.userId = userId
+        self.username = username
+        self.online = online
+    }
+}
 
 struct ChatScreen: View {
     @Environment(\.supabaseClient) private var supabaseClient
     @State private var chatMessages: [ChatMessage] = []
     @State private var chatMessageText: String = ""
+    @State private var userStatusus: [UserStatus] = []
+    @State private var channel: RealtimeChannelV2?
+    
+
     
     private func saveChatMessage() async {
         
@@ -66,19 +83,47 @@ struct ChatScreen: View {
         }
     }
     
-    private func configureChannelSubscription() async {
+    private func handlePresenceChange(isJoining: Bool, presenceValue: PresenceV2) {
         
-        let channel = await supabaseClient.channel("general")
+        guard let userIdString = presenceValue.state["userId"]?.stringValue,
+              let userId = UUID(uuidString: userIdString) else { return }
         
-        let channelStream = channel.postgresChange(
-            AnyAction.self,
-            schema: "public",
-            table: "chats"
-        )
+                
+                
+        let username = presenceValue.state["username"]?.stringValue ?? "Anonymous"
         
-        await channel.subscribe()
+        if isJoining {
+            if !userStatusus.contains(where: { $0.username == username }) {
+                userStatusus.append(UserStatus(userId: userId, username: username, online: true))
+            } else {
+                if let index = userStatusus.firstIndex(where: { $0.userId == userId }) {
+                    userStatusus[index].online = true
+                }
+            }
+        } else {
+            if let index = userStatusus.firstIndex(where: { $0.username == username }) {
+                userStatusus[index].online = false
+            }
+//            userStatusus.removeAll() { $0.username == username }
+        }
+    }
+    
+    private func handlePresenceStream(_ presenceStream: AsyncStream<any PresenceAction>) async {
         
-        for await change in channelStream {
+        for await presence in presenceStream {
+            if let presenceValue = presence.joins.values.first {
+                handlePresenceChange(isJoining: true, presenceValue: presenceValue)
+            }
+
+            if let presenceValue = presence.leaves.values.first {
+                handlePresenceChange(isJoining: false, presenceValue: presenceValue)
+            }
+        }
+    }
+    
+    
+    private func handleChatChanges(_ changeStream: AsyncStream<AnyAction>) async {
+        for await change in changeStream {
             switch change {
             case .delete(let action):
                 print("Deleted: \(action.oldRecord)")
@@ -92,12 +137,47 @@ struct ChatScreen: View {
             }
         }
     }
+    
+    private func configureSubscriptions() async throws {
+        
+        let channel = supabaseClient.channel("general")
+        self.channel = channel
+        let presenceScreen = channel.presenceChange()
+        
+        let changeStream = channel.postgresChange(
+            AnyAction.self,
+            schema: "public",
+            table: "chats"
+        )
+        
+        let user = try await supabaseClient.auth.user()
+        guard let email = user.email else { return }
+        
+        let  userStatus = UserStatus(userId: user.id, username: email.username, online: true)
+        
+        await channel.subscribe()
+        
+        try await channel.track(userStatus)
+        
+        async let presenceTask: Void = handlePresenceStream(presenceScreen)
+        async let changeTask: Void = handleChatChanges(changeStream)
+        
+        _ = await(presenceTask, changeTask)
+    }
     var body: some View {
         VStack {
-            if chatMessages.isEmpty {
-                ContentUnavailableView("No messages yet", systemImage: "bubble.left.and.bubble.right")
-            } else {
+            ScrollViewReader { proxy in
+                UserStatusListView(userStatuses: userStatusus)
                 ChatMessageListView(chatMessages: chatMessages)
+                    .onChange(of: chatMessages) {
+                        if !chatMessages.isEmpty {
+                            let lastChatMessage = chatMessages[chatMessages.endIndex - 1]
+                            withAnimation {
+                                proxy.scrollTo(lastChatMessage.id, anchor: .bottom)
+                            }
+                        }
+                    }
+                
             }
         }
         .padding()
@@ -116,11 +196,16 @@ struct ChatScreen: View {
         .task {
             do {
                 try await loadChatMessages()
-                await configureChannelSubscription()
+                try await configureSubscriptions()
             } catch {
                 print(error)
             }
-        }
+        }.onDisappear(perform: {
+            Task {
+                await channel?.untrack()
+                await channel?.unsubscribe()
+            }
+        })
     }
 }
 

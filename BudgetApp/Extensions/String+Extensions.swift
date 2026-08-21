@@ -21,4 +21,17 @@ extension String {
         let emailPredcate = NSPredicate(format: "SELF MATCHES %@", emailRegEx)
         return emailPredcate.evaluate(with: self) 
     }
+    
+    var username: String {
+        
+        let components = self.split(separator: "@")
+        
+        guard let username = components.first else {
+            return ""
+        }
+        
+        return String(username)
+        
+        
+    }
 }

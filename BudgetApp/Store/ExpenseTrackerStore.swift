@@ -25,7 +25,7 @@ class ExpenseTrackerStore {
         
         budgets = try await supabaseClient
             .from("budgets")
-            .select("id, name, limit, expenses(id , name, amount, budget_id)")
+            .select("id, name, limit, user_id, expenses(id , name, amount, budget_id)")
             .execute()
             .value 
     }
@@ -89,7 +89,7 @@ class ExpenseTrackerStore {
             throw BudgetError.invalidBudgetID
         }
         
-        budgets[indedx].expenses?.append(newExpense)
+        budgets[indedx].expenses = (budgets[indedx].expenses ?? []) + [newExpense]
     }
     
     func deletExpense(_ expense: Expense) async throws {

@@ -10,9 +10,15 @@ import Supabase
 
 struct BudgetListScreen: View {
     
-    @State private var isPresented: Bool = false
-    @State private var isSettingsPresented: Bool = false
-    
+    private enum ActiveSheet: Identifiable {
+        case chat
+        case settings
+        case addBudget
+        var id: Self { self }
+    }
+
+    @State private var activeSheet: ActiveSheet?
+
     @Environment(ExpenseTrackerStore.self) private var store
     
     
@@ -53,26 +59,40 @@ struct BudgetListScreen: View {
         .toolbar (content: {
             ToolbarItem(placement: .topBarLeading) {
                 Button(action: {
-                    isSettingsPresented = true
+                    activeSheet = .settings
                 }, label: {
                     Image(systemName: "gear")
                 })
             }
-            
+
+            ToolbarItem(placement: .topBarLeading) {
+                Button(action: {
+                    activeSheet = .chat
+                }, label: {
+                    Image(systemName: "bubble.left.and.bubble.right")
+                })
+            }
+
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Add New") {
-                    isPresented = true
+                    activeSheet = .addBudget
                 }
             }
         })
-        .sheet(isPresented: $isSettingsPresented, content: {
-            SettingsScreen()
-        })
-        .sheet(isPresented: $isPresented, content: {
-            NavigationStack {
-                AddBedgetScreen()
+        .sheet(item: $activeSheet) { sheet in
+            switch sheet {
+            case .chat:
+                NavigationStack {
+                    ChatScreen()
+                }
+            case .settings:
+                SettingsScreen()
+            case .addBudget:
+                NavigationStack {
+                    AddBedgetScreen()
+                }
             }
-        })
+        }
     }
 }
 

@@ -19,5 +19,6 @@ struct Budget: Codable, Identifiable {
         case name = "name"
         case limit = "limit"
         case userID = "user_id"
+        case expenses = "expenses"
     }
 }

@@ -18,12 +18,16 @@ struct BudgetDetailScreen: View {
      
     @Environment(ExpenseTrackerStore.self) private var store
     
+    private var currentBudget: Budget {
+        store.budgets.first(where: { $0.id == budget.id }) ?? budget
+    }
+    
     private func updateBudget() async {
         guard let limit = limit,
               let id = budget.id
         else { return }
         
-        let updatedValue = Budget(name: name, limit: limit, userID: UUID())
+        let updatedValue = Budget(name: name, limit: limit, userID: budget.userID)
         
         do {
             try await store.updateBudget(id: id, updatedValues: updatedValue)
@@ -43,7 +47,7 @@ struct BudgetDetailScreen: View {
             }
             
             Section("Expenses") {
-                if let expenses = budget.expenses {
+                if let expenses = currentBudget.expenses {
                     ExpenseListView(expenses: expenses)
                 }
             }

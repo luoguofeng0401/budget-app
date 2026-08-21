@@ -34,23 +34,21 @@ struct ExpenseListView: View {
     }
     
     var body: some View {
-        List {
-            
-            if !expenses.isEmpty {
-                HStack {
-                    Spacer()
-                    Text("Tatol: ")
-                    Text(tatol, format: .currency(code: Locale.currncyCode))
-                    Spacer()
-                }.bold() 
-            }
-            ForEach(expenses) { expense in
-                ExpenseLCellView(expense: expense)
-                    .onTapGesture {
-                         selectedExpense = expense
-                    }
-            }.onDelete(perform: deletExpense)
+        if !expenses.isEmpty {
+            HStack {
+                Spacer()
+                Text("Tatol: ")
+                Text(tatol, format: .currency(code: Locale.currncyCode))
+                Spacer()
+            }.bold()
         }
+        ForEach(expenses) { expense in
+            ExpenseLCellView(expense: expense)
+                .onTapGesture {
+                    selectedExpense = expense
+                }
+        }
+        .onDelete(perform: deletExpense)
         .sheet(item: $selectedExpense) { selectedExpense in
             ExpenseDetailScreen(expense: selectedExpense)
                 .presentationDetents([.medium])
@@ -65,7 +63,12 @@ struct ExpenseLCellView: View {
     var body: some View {
         
         HStack {
-            Text(expense.name)
+            VStack(alignment: .leading, spacing: 10) {
+                Text(expense.name)
+                if expense.receiptPath != nil {
+                    Image(systemName: "paperclip")
+                }
+            }
             Spacer()
             Text(expense.amount ,format: .currency(code: Locale.currncyCode))
         }
@@ -73,6 +76,8 @@ struct ExpenseLCellView: View {
 }
 
 #Preview {
-    ExpenseListView(expenses: [Expense(name: "Leo", amount: 4.5, budgetId: 15)])
-         .environment(ExpenseTrackerStore(supabaseClient: .development ))
+    Form {
+        ExpenseListView(expenses: [Expense(name: "Leo", amount: 4.5, budgetId: 15)])
+    }
+    .environment(ExpenseTrackerStore(supabaseClient: .development ))
 }

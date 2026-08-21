@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+public import Storage
 
 struct ExpenseDetailScreen: View {
     
@@ -14,8 +15,10 @@ struct ExpenseDetailScreen: View {
     @Environment(\.dismiss) private  var dismiss
     @State private var name: String = ""
     @State private var amount: Double?
+    @State private var imageData: Data?
     
     @Environment(ExpenseTrackerStore.self) private var store
+    @Environment(\.storageClient) private var storageClient
     
     private func updateExpense() async {
         guard let expenseID = expense.id,
@@ -50,6 +53,23 @@ struct ExpenseDetailScreen: View {
                     }
                 }
             }
+            
+            if let imageData, let uiImage = UIImage(data: imageData) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+            }
+        }
+        .task {
+            guard let receiptPath = expense.receiptPath else { return }
+            
+            do {
+                imageData = try await storageClient
+                    .from("receipts")
+                    .download(path: receiptPath)
+            } catch {
+                print(error)
+            }
         }
         .onAppear(perform: {
             name = expense.name
@@ -61,4 +81,5 @@ struct ExpenseDetailScreen: View {
 #Preview {
     ExpenseDetailScreen(expense: Expense(name: "Luo", amount: 2.2, budgetId: 15 ))
         .environment(ExpenseTrackerStore(supabaseClient: .development ))
+        .environment(\.storageClient, .development)
 }

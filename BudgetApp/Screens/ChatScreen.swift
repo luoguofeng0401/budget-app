@@ -29,6 +29,7 @@ struct ChatScreen: View {
     @State private var chatMessageText: String = ""
     @State private var userStatusus: [UserStatus] = []
     @State private var channel: RealtimeChannelV2?
+    @State private var didInitialScroll = false
     
 
     
@@ -170,11 +171,15 @@ struct ChatScreen: View {
                 UserStatusListView(userStatuses: userStatusus)
                 ChatMessageListView(chatMessages: chatMessages)
                     .onChange(of: chatMessages) {
-                        if !chatMessages.isEmpty {
-                            let lastChatMessage = chatMessages[chatMessages.endIndex - 1]
+                        guard let lastChatMessage = chatMessages.last else { return }
+                        if didInitialScroll {
                             withAnimation {
                                 proxy.scrollTo(lastChatMessage.id, anchor: .bottom)
                             }
+                        } else {
+                            // 初次載入：直接定位到底部，不做動畫
+                            proxy.scrollTo(lastChatMessage.id, anchor: .bottom)
+                            didInitialScroll = true
                         }
                     }
                 

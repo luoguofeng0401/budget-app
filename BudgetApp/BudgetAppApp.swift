@@ -15,6 +15,10 @@ struct BudgetAppApp: App {
     let authClient: AuthClient = .development
     let storageClient: SupabaseStorageClient = .development
     @State private var signInStatus: SignInStatus = .idle
+    // Keep a single store instance for the app's lifetime. Creating it inline
+    // in `body` would rebuild it (and the whole environment tree) on every
+    // Scene re-evaluation, tearing down presented sheets.
+    @State private var store = ExpenseTrackerStore(supabaseClient: .development)
     
     private enum SignInStatus {
         case idle
@@ -23,7 +27,7 @@ struct BudgetAppApp: App {
     }
     
     private func listenAuthEvents() async {
-        
+
         for await (event, _) in authClient.authStateChanges {
             if case .initialSession = event {
                 do {
@@ -70,7 +74,7 @@ struct BudgetAppApp: App {
                     }
                 }
             }
-            .environment(ExpenseTrackerStore(supabaseClient: .development))
+            .environment(store)
             .environment(\.authClient, .development)
             .environment(\.storageClient, storageClient)
             .environment(router)

@@ -10,17 +10,17 @@ import Supabase
 
 extension SupabaseStorageClient {
     
-    func upload(data: Data, uniqueFileName: String, options: FileOptions) async throws -> String? {
-        
+    func upload(data: Data, path: String, options: FileOptions) async throws -> String? {
+
         let response = try await self
             .from("receipts")
             .upload(
-                path: "privat/\(uniqueFileName)",
+                path: path,
                 file: data,
                 options: options
             )
-        
+
         return response.path
-        
+
     }
 }

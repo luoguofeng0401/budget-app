@@ -27,7 +27,7 @@ class ExpenseTrackerStore {
         
         budgets = try await supabaseClient
             .from("budgets")
-            .select("id, name, limit, user_id, expenses(id , name, amount, budget_id)")
+            .select("id, name, limit, user_id, expenses(id, name, amount, budget_id, receipt_path, tags(id, name))")
             .execute()
             .value 
     }
@@ -65,7 +65,7 @@ class ExpenseTrackerStore {
             .from("budgets")
             .update(updatedValues)
             .eq("id" , value: id)
-            .select()
+            .select("id, name, limit, user_id, expenses(id, name, amount, budget_id, receipt_path, tags(id, name))")
             .single()
             .execute()
             .value
@@ -106,7 +106,7 @@ class ExpenseTrackerStore {
         
         let expenses: [Expense] = try await supabaseClient
             .from("expenses")
-            .select("id, name, amount, budget_id, receipt_path, tags(id, name")
+            .select("id, name, amount, budget_id, receipt_path, tags(id, name)")
             .eq("budget_id", value: budgetId)
             .execute()
             .value

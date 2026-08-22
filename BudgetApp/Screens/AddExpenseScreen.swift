@@ -22,50 +22,57 @@ struct AddExpenseScreen: View {
      
     @Environment(\.dismiss) private var dismiss
     @Environment(\.storageClient) private var storageClient
+    @Environment(\.authClient) private var authClient
     @Environment(ExpenseTrackerStore.self) private var store
-    
+
     @State private var selectedTags: Set<Tag> = []
-    
+    @State private var errorMessage: String?
+
     private func uploadReceipt() async throws -> String? {
-        
+
         guard let uiImage = uiImage,
               let resizedImage = uiImage.resizeTo(to: CGSize(width: 300, height: 300)),
               let imageData = resizedImage.pngData()
                 else {
             return nil
         }
-        
-        let uniqueFileName = UUID().uuidString
-        
+
+        guard let userID = authClient.currentUser?.id else { return nil }
+
+        // Store receipts in a per-user folder so uploads satisfy the
+        // storage RLS policy: (storage.foldername(name))[1] = auth.uid()
+        let path = "\(userID.uuidString.lowercased())/\(UUID().uuidString)"
+
         let options = FileOptions(
             cacheControl: "3600",
             contentType: "image/png",
             upsert: false
         )
-        
-        return try await storageClient.upload(data: imageData, uniqueFileName: uniqueFileName, options: options)
-        
+
+        return try await storageClient.upload(data: imageData, path: path, options: options)
+
     }
-    
+
     private func saveExpense() async {
-        
-        
+
+
         do {
-            var receiptPath = try await uploadReceipt()
-            
+            let receiptPath = try await uploadReceipt()
+
             guard let amount = amount,
                   let budgetID = budget.id
                     else{ return }
-            
+
             let expense = Expense(name: name, amount: amount, budgetId: budgetID, receiptPath: receiptPath)
-            
-            
+
+
             try await store.addExpense(expense: expense, tags: Array(selectedTags))
             dismiss()
         } catch {
             print(error)
+            errorMessage = error.localizedDescription
         }
-        
+
     }
     
     var body: some View {
@@ -123,18 +130,30 @@ struct AddExpenseScreen: View {
         })
         .sheet(isPresented: $isCameraSelected, content: {
             ImagePicker(image: $uiImage, sourceType: .camera)
-            
+
         })
+        .alert("Unable to Save", isPresented: Binding(
+            get: { errorMessage != nil },
+            set: { if !$0 { errorMessage = nil } }
+        )) {
+            Button("OK", role: .cancel) { errorMessage = nil }
+        } message: {
+            Text(errorMessage ?? "")
+        }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button("Close") {
                     dismiss()
                 }
             }
-            
+
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Save") {
-                    saving = true
+                if saving {
+                    ProgressView()
+                } else {
+                    Button("Save") {
+                        saving = true
+                    }
                 }
             }
         }

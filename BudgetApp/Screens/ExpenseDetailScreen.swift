@@ -58,6 +58,7 @@ struct ExpenseDetailScreen: View {
                     print("dismiss")
                     dismiss()
                 }
+                .buttonStyle(.borderless)
                 
                 Spacer()
                 
@@ -66,6 +67,7 @@ struct ExpenseDetailScreen: View {
                         await updateExpense()
                     }
                 }
+                .buttonStyle(.borderless)
             }
             
             if loading {

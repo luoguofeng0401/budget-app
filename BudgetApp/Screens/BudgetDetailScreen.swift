@@ -15,6 +15,7 @@ struct BudgetDetailScreen: View {
     @State private var name: String = ""
     @State private var limit: Double?
     @State private var isPresented: Bool = false
+    @State private var selectedExpense: Expense?
      
     @Environment(ExpenseTrackerStore.self) private var store
     
@@ -48,9 +49,16 @@ struct BudgetDetailScreen: View {
             
             Section("Expenses") {
                 if let expenses = currentBudget.expenses {
-                    ExpenseListView(expenses: expenses)
+                    ExpenseListView(expenses: expenses, selectedExpense: $selectedExpense)
                 }
             }
+        }
+        // Host the expense detail sheet on the single Form view so there is
+        // exactly one presenter (attaching it inside the list rows created one
+        // presenter per row, which dismissed each other on the first tap).
+        .sheet(item: $selectedExpense) { expense in
+            ExpenseDetailScreen(expense: expense)
+                .presentationDetents([.medium])
         }
         .onAppear(perform: {
             name = budget.name

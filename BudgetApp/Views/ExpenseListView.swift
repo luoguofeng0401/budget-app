@@ -10,7 +10,10 @@ import SwiftUI
 struct ExpenseListView: View {
     
     let expenses:  [Expense]
-    @State private var selectedExpense: Expense?
+    // Selection + sheet presentation live on the parent's single `Form` view.
+    // Hosting the sheet here (inside the list rows) applied it to every row
+    // and made competing presenters dismiss each other on the first tap.
+    @Binding var selectedExpense: Expense?
     @Environment(ExpenseTrackerStore.self) private var store
     
     private var tatol: Double {
@@ -43,16 +46,14 @@ struct ExpenseListView: View {
             }.bold()
         }
         ForEach(expenses) { expense in
-            ExpenseLCellView(expense: expense)
-                .onTapGesture {
-                    selectedExpense = expense
-                }
+            Button {
+                selectedExpense = expense
+            } label: {
+                ExpenseLCellView(expense: expense)
+            }
+            .buttonStyle(.plain)
         }
         .onDelete(perform: deletExpense)
-        .sheet(item: $selectedExpense) { selectedExpense in
-            ExpenseDetailScreen(expense: selectedExpense)
-                .presentationDetents([.medium])
-        }
     }
 }
 
@@ -83,7 +84,7 @@ struct ExpenseLCellView: View {
 
 #Preview {
     Form {
-        ExpenseListView(expenses: [Expense(id: 1, name: "Leo", amount: 4.5, budgetId: 15, tags: [Tag(id: 1, name: "Groceries")]), Expense(id: 2, name: "Leo", amount: 4.5, budgetId: 15, tags: [Tag(id: 2, name: "Groceries")])])
+        ExpenseListView(expenses: [Expense(id: 1, name: "Leo", amount: 4.5, budgetId: 15, tags: [Tag(id: 1, name: "Groceries")]), Expense(id: 2, name: "Leo", amount: 4.5, budgetId: 15, tags: [Tag(id: 2, name: "Groceries")])], selectedExpense: .constant(nil))
     }
     .environment(ExpenseTrackerStore(supabaseClient: .development ))
 }

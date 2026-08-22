@@ -24,56 +24,56 @@ struct AddExpenseScreen: View {
     @Environment(\.storageClient) private var storageClient
     @Environment(ExpenseTrackerStore.self) private var store
     
-    private func saveExpense() async {
+    @State private var selectedTags: Set<Tag> = []
+    
+    private func uploadReceipt() async throws -> String? {
         
-        var receiptPath: String?
-        
-        if let uiImage {
-            
-            guard let resizedImage = uiImage.resizeTo(to: CGSize(width: 300, height: 300)),
-                  let imageData = resizedImage.pngData()
-                    else { return }
-            
-            let uniqueFileName = UUID().uuidString
-            
-            do {
-                let response = try await storageClient
-                    .from("receipts")
-                    .upload(
-                        path: "private/\(uniqueFileName)",
-                        file: imageData,
-                        options: FileOptions(
-                            cacheControl: "3600",
-                            contentType: "image/png",
-                            upsert: false
-                        )
-                    )
-                receiptPath = response.path
-            } catch {
-                print(error)
-            }
-            
+        guard let uiImage = uiImage,
+              let resizedImage = uiImage.resizeTo(to: CGSize(width: 300, height: 300)),
+              let imageData = resizedImage.pngData()
+                else {
+            return nil
         }
         
+        let uniqueFileName = UUID().uuidString
         
-        guard let amount = amount,
-              let budgetID = budget.id
-                else{ return }
+        let options = FileOptions(
+            cacheControl: "3600",
+            contentType: "image/png",
+            upsert: false
+        )
         
-        let expense = Expense(name: name, amount: amount, budgetId: budgetID, receiptPath: receiptPath)
+        return try await storageClient.upload(data: imageData, uniqueFileName: uniqueFileName, options: options)
+        
+    }
+    
+    private func saveExpense() async {
+        
         
         do {
-            try await store.addExpense(expense)
+            var receiptPath = try await uploadReceipt()
+            
+            guard let amount = amount,
+                  let budgetID = budget.id
+                    else{ return }
+            
+            let expense = Expense(name: name, amount: amount, budgetId: budgetID, receiptPath: receiptPath)
+            
+            
+            try await store.addExpense(expense: expense, tags: Array(selectedTags))
             dismiss()
         } catch {
             print(error)
         }
+        
     }
     
     var body: some View {
         Form {
             TextField("Enter name", text: $name)
             TextField("Enter limit", value: $amount, format: .number)
+            
+            AddTagsView(tags: store.tags, selectedTags: $selectedTags, onTagAdded: store.createTag)
             
             HStack {
                 PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
@@ -108,6 +108,13 @@ struct AddExpenseScreen: View {
                 
             })
         })
+        .task {
+            do {
+                try await store.loadTags()
+            } catch {
+                print(error)
+            }
+        }
         .task(id: saving, {
             if saving {
                 await saveExpense()

@@ -1,5 +1,5 @@
 //
-//  SuabaseClientExtensions.swift
+//  SuabaseClient+Extensions.swift
 //  BudgetApp
 //
 //  Created by Guofeng Luo on 2026/8/17.

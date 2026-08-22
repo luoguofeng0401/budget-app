@@ -13,6 +13,8 @@ import Supabase
 class ExpenseTrackerStore {
     
     private(set) var budgets: [Budget] = []
+    private(set) var tags: [Tag] = []
+    
     private(set) var expenses: [Expense] = []
     
     var supabaseClient: SupabaseClient
@@ -75,9 +77,9 @@ class ExpenseTrackerStore {
         }
     }
     
-    func addExpense(_ expense: Expense) async throws {
+    func addExpense(expense: Expense, tags: [Tag]) async throws {
         
-        let newExpense: Expense = try await supabaseClient
+        var newExpense: Expense = try await supabaseClient
             .from("expenses")
             .insert(expense)
             .select()
@@ -85,11 +87,35 @@ class ExpenseTrackerStore {
             .execute()
             .value
         
+        for tag in tags {
+            try await supabaseClient
+                .from("expenses_tags")
+                .insert(["expense_id": newExpense.id, "tag_id": tag.id])
+                .execute()
+        }
+        
         guard let indedx = budgets.firstIndex(where: { $0.id == expense.budgetId }) else {
             throw BudgetError.invalidBudgetID
         }
         
+        newExpense.tags = tags
         budgets[indedx].expenses = (budgets[indedx].expenses ?? []) + [newExpense]
+    }
+    
+    func loadExpense(by budgetId: Int) async throws {
+        
+        let expenses: [Expense] = try await supabaseClient
+            .from("expenses")
+            .select("id, name, amount, budget_id, receipt_path, tags(id, name")
+            .eq("budget_id", value: budgetId)
+            .execute()
+            .value
+        
+        guard let index = budgets.firstIndex(where: { $0.id == budgetId }) else {
+            throw BudgetError.invalidBudgetID
+        }
+                                             
+        budgets[index].expenses = expenses
     }
     
     func deletExpense(_ expense: Expense) async throws {
@@ -111,9 +137,9 @@ class ExpenseTrackerStore {
         budgets[index].expenses = budgets[index].expenses?.filter { $0.id != expenseID  }
     }
     
-    func updateExpense(expenseID: Int, updatedValues: Expense) async throws {
+    func updateExpense(expenseID: Int, updatedValues: Expense, tags: [Tag]) async throws {
          
-        let updateExpense: Expense = try await supabaseClient
+        var updatedExpense: Expense = try await supabaseClient
             .from("expenses")
             .update(updatedValues)
             .eq("id", value: expenseID)
@@ -122,14 +148,50 @@ class ExpenseTrackerStore {
             .execute()
             .value
         
-        guard let budgetIndex = budgets.firstIndex(where: { $0.id == updateExpense.budgetId }) else {
+        try await supabaseClient
+            .from("expenses_tags")
+            .delete()
+            .eq("expense_id", value: updatedExpense.id)
+            .execute()
+        
+        for tag in tags {
+            try await supabaseClient
+                .from("expenses_tags")
+                .insert(["expense_id": updatedExpense.id, "tag_id": tag.id])
+                .execute()
+        }
+            
+        
+        guard let budgetIndex = budgets.firstIndex(where: { $0.id == updatedExpense.budgetId }) else {
             throw BudgetError.invalidBudgetID
         }
         
-        guard let expenseIndex = budgets[budgetIndex].expenses?.firstIndex(where: { $0.id == updateExpense.id }) else {
+        guard let expenseIndex = budgets[budgetIndex].expenses?.firstIndex(where: { $0.id == updatedExpense.id }) else {
             throw ExpenseError.invalidExpenseID
         }
         
-        budgets[budgetIndex].expenses?[expenseIndex  ] = updateExpense 
+        updatedExpense.tags = tags
+        budgets[budgetIndex].expenses?[expenseIndex  ] = updatedExpense
+    }
+    
+    func loadTags() async throws {
+        tags = try await supabaseClient
+            .from("tags")
+            .select()
+            .execute()
+            .value
+    }
+    
+    func createTag(tag: Tag) async throws {
+        
+        let newTag: Tag = try await supabaseClient
+            .from("tags")
+            .insert(tag)
+            .select()
+            .single()
+            .execute()
+            .value
+        
+        tags.insert(newTag, at: 0)
     }
 }

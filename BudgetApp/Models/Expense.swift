@@ -14,11 +14,10 @@ struct Expense: Codable, Identifiable {
     let amount: Double
     let budgetId: Int
     var receiptPath: String?
+    var tags: [Tag]?
     
     private enum CodingKeys: String, CodingKey  {
-        case id = "id"
-        case name = "name"
-        case amount = "amount"
+        case id, name, amount, tags
         case budgetId = "budget_id"
         case receiptPath = "receipt_path"
     }

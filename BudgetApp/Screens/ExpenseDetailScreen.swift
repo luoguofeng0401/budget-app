@@ -20,6 +20,9 @@ struct ExpenseDetailScreen: View {
     @Environment(ExpenseTrackerStore.self) private var store
     @Environment(\.storageClient) private var storageClient
     
+    @State private var loading: Bool = false
+    @State private var selectedTags: Set<Tag> = []
+    
     private func updateExpense() async {
         guard let expenseID = expense.id,
               let amount = amount else { return }
@@ -27,17 +30,28 @@ struct ExpenseDetailScreen: View {
         let updateValues = Expense(name: name, amount: amount, budgetId: expense.budgetId )
         
         do {
-            try await store.updateExpense(expenseID: expenseID, updatedValues: updateValues)
+            try await store.updateExpense(expenseID: expenseID, updatedValues: updateValues, tags: Array(selectedTags))
             dismiss()
         } catch {
             print(error)
         }
+    }
+    
+    
+    private func loadReceipt() async throws{
+        guard let receiptPath = expense.receiptPath else { return }
+        
+        imageData = try await storageClient
+            .from("receipts")
+            .download(path: receiptPath)
     }
      
     var body: some View {
         Form {
             TextField("Expense name", text: $name)
             TextField("Expense amount", value: $amount, format: .currency(code: Locale.currncyCode ))
+            
+            AddTagsView(tags: store.tags, selectedTags: $selectedTags, onTagAdded: store.createTag)
             
             HStack {
                 Button("Cancel") {
@@ -54,26 +68,38 @@ struct ExpenseDetailScreen: View {
                 }
             }
             
-            if let imageData, let uiImage = UIImage(data: imageData) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
+            if loading {
+                ProgressView("Loading...")
+            } else {
+                HStack {
+                    Spacer()
+                    if let imageData, let uiImage = UIImage(data: imageData) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                    }
+                    Spacer()
+                }
             }
         }
         .task {
-            guard let receiptPath = expense.receiptPath else { return }
+
+            loading = true
             
             do {
-                imageData = try await storageClient
-                    .from("receipts")
-                    .download(path: receiptPath)
+                try await loadReceipt()
+                try await store.loadTags()
             } catch {
                 print(error)
             }
+            
+            loading = false
+            
         }
         .onAppear(perform: {
             name = expense.name
             amount = expense.amount
+            selectedTags = Set(expense.tags ?? [])
         })
     }
 }

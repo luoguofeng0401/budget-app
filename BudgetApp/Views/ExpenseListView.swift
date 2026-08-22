@@ -65,6 +65,12 @@ struct ExpenseLCellView: View {
         HStack {
             VStack(alignment: .leading, spacing: 10) {
                 Text(expense.name)
+                
+                if let tags = expense.tags, !tags.isEmpty {
+                    TagListView(tags: tags, selectedTags: .constant([]))
+                        .font(.caption2)
+                }
+                
                 if expense.receiptPath != nil {
                     Image(systemName: "paperclip")
                 }
@@ -77,7 +83,7 @@ struct ExpenseLCellView: View {
 
 #Preview {
     Form {
-        ExpenseListView(expenses: [Expense(name: "Leo", amount: 4.5, budgetId: 15)])
+        ExpenseListView(expenses: [Expense(id: 1, name: "Leo", amount: 4.5, budgetId: 15, tags: [Tag(id: 1, name: "Groceries")]), Expense(id: 2, name: "Leo", amount: 4.5, budgetId: 15, tags: [Tag(id: 2, name: "Groceries")])])
     }
     .environment(ExpenseTrackerStore(supabaseClient: .development ))
 }
